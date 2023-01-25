@@ -6,7 +6,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
-using namespace std;
+
 
 class Disconnector : public Edge {
 public:

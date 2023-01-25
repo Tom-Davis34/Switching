@@ -6,7 +6,7 @@
 #include "common.h"
 #include "BusData.h"
 
-using namespace std;
+
 
 class FileBus {
 public:

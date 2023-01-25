@@ -4,22 +4,19 @@
 
 class SparseMatrixComplex {
 public:
-    dim3 size;
     int* row;
     int* col;
-    complex* ele;
+    cmplx* ele;
     int elementCount;
 
-    SparseMatrixComplex(dim3 size, int* row, int* col, complex* ele, int elementCount) {
-        this->size = size;
+    SparseMatrixComplex( int* row, int* col, cmplx* ele, int elementCount) {
         this->row = row;
         this->col = col;
         this->ele = ele;
         this->elementCount = elementCount;
     }
 
-    SparseMatrixComplex(dim3 size, int elementCount) {
-        this->size = size;
+    SparseMatrixComplex( int elementCount) {
         this->row = 0;
         this->col = 0;
         this->ele = 0;
@@ -29,22 +26,19 @@ public:
 
 class SparseMatrixReal {
 public:
-    dim3 size;
     int* row;
     int* col;
-    real* ele;
+    float* ele;
     int elementCount;
 
-    SparseMatrixReal(dim3 size, int* row, int* col, real* ele, int elementCount) {
-        this->size = size;
+    SparseMatrixReal( int* row, int* col, float* ele, int elementCount) {
         this->row = row;
         this->col = col;
         this->ele = ele;
         this->elementCount = elementCount;
     }
 
-    SparseMatrixReal(dim3 size, int elementCount) {
-        this->size = size;
+    SparseMatrixReal(int elementCount) {
         this->row = 0;
         this->col = 0;
         this->ele = 0;

@@ -38,8 +38,8 @@ public:
 	vector<int> nodeToSuperNode;
 	vector<vector<int>> superNodeToNode;
 
-	vector<complex> superVoltage;
-	vector<complex> voltage;
+	vector<cmplx> superVoltage;
+	vector<cmplx> voltage;
 
 	vector<int>* connectivity;
 
@@ -53,7 +53,7 @@ public:
 		this->bds = bds;
 
 		this->numNodes = bds.size();
-		this->voltage = vector<complex>(bds.size());
+		this->voltage = vector<cmplx>(bds.size());
 
 		connectivity = new vector<int>();
 	}
@@ -79,7 +79,7 @@ public:
 		}
 	}
 
-	real h(real scale) {
+	float h(float scale) {
 		int diff = 0;
 
 		for (int i = 0; i < u.size(); i++) {
@@ -214,11 +214,11 @@ public:
 	}
 
 	bool nodeIsDead(int const& startNode) {
-		if (!bds[startNode].pq.isZero()) {
+		if (!isZero(bds[startNode].pq)) {
 			return false;
 		}
 
-		unordered_set<int>& alreadyInfected = unordered_set<int>();
+		unordered_set<int> alreadyInfected = unordered_set<int>();
 
 		stack<int> stk = stack<int>();
 		stk.push(startNode);
@@ -248,7 +248,7 @@ public:
 					otherNode = edgesForCurrentNode[i]->getFNode();
 				}
 
-				if (!bds[otherNode].pq.isZero()) {
+				if (!isZero(bds[otherNode].pq)) {
 					return false;
 				}
 
@@ -299,7 +299,7 @@ public:
 			PowerFlowNode pfNode = PowerFlowNode();
 
 			pfNode.node = i;
-			pfNode.pq = Complex(0);
+			pfNode.pq = cmplx(0);
 			pfNode.isPV = false;
 			pfNode.systemVoltage = 1;
 
@@ -318,7 +318,7 @@ public:
 		cout << "\nPowerFlowNodes\n";
 		for (size_t i = 0; i < retVal.size(); i++)
 		{
-			cout << "[" << retVal[i].node << ", " << retVal[i].isPV << ", (" << retVal[i].pq.x << ", " << retVal[i].pq.y << "), " << retVal[i].systemVoltage << "]\n";
+			cout << "[" << retVal[i].node << ", " << retVal[i].isPV << ", (" << retVal[i].pq.real() << ", " << retVal[i].pq.imag() << "), " << retVal[i].systemVoltage << "]\n";
 		}
 		cout << "\n";
 		return retVal;
@@ -330,7 +330,7 @@ public:
 		createSubGraph();
 
 		vector<PowerFlowNode> pfNodes = mergeBusData();
-		superVoltage = vector<Complex>(pfNodes.size());
+		superVoltage = vector<cmplx>(pfNodes.size());
 
 		SparseMatrixComplexBuilder smb = SparseMatrixComplexBuilder(superNodeToNode.size());
 		smb.addCircuits(cs, nodeToSuperNode);
@@ -351,7 +351,7 @@ public:
 		for (size_t i = 0; i < voltage.size(); i++)
 		{
 			voltage[i] = superVoltage[nodeToSuperNode[i]];
-			cout << "V [" << i << "]: " << voltage[i].x << " + " << voltage[i].y << "j\n";
+			cout << "V [" << i << "]: " << voltage[i].real() << " + " << voltage[i].imag() << "j\n";
 		}
 
 		cout << "\033[0m\n";
@@ -361,13 +361,13 @@ public:
 	const int getGenNum() const {
 		int genNum = 0;
 
-		for each (auto nodeList in superNodeToNode)
+		for (auto nodeList : superNodeToNode)
 		{
 			bool containsGen = false;
 
-			for each (int node in nodeList)
+			for  (int node : nodeList)
 			{
-				if (!bds[node].gen.isZero()) {
+				if (!isZero(bds[node].gen)) {
 					containsGen = true;
 				}
 			}

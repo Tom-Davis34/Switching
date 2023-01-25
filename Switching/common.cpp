@@ -1,9 +1,13 @@
 
 #include "common.h"
 
-std::vector<real> operator*(const real alfa, const std::vector<real>& v)
+bool isZero(cmplx c){
+    return c.real() == 0 && c.imag() == 0;
+}
+
+std::vector<float> operator*(const float alfa, const std::vector<float>& v)
 {
-    std::vector<real> temp;
+    std::vector<float> temp;
     int n = v.size();
     temp.resize(n);
     for (int i = 0; i < n; i++)
@@ -13,9 +17,9 @@ std::vector<real> operator*(const real alfa, const std::vector<real>& v)
     return temp;
 }
 
-std::vector<real> operator*(const std::vector<real>& v, real alfa)
+std::vector<float> operator*(const std::vector<float>& v, float alfa)
 {
-    std::vector<real> temp;
+    std::vector<float> temp;
     int n = v.size();
     temp.resize(n);
     for (int i = 0; i < n; i++)
@@ -25,9 +29,9 @@ std::vector<real> operator*(const std::vector<real>& v, real alfa)
     return temp;
 }
 
-std::vector<real> operator + (const std::vector<real>& v1, const std::vector<real>& v2)
+std::vector<float> operator + (const std::vector<float>& v1, const std::vector<float>& v2)
 {
-    std::vector<real> temp;
+    std::vector<float> temp;
     int n = v1.size();
     temp.resize(n);
     for (int i = 0; i < n; i++)
@@ -37,9 +41,9 @@ std::vector<real> operator + (const std::vector<real>& v1, const std::vector<rea
     return temp;
 }
 
-std::vector<real> operator-(const std::vector<real>& v1, const std::vector<real>& v2)
+std::vector<float> operator-(const std::vector<float>& v1, const std::vector<float>& v2)
 {
-    std::vector<real> temp;
+    std::vector<float> temp;
     int n = v1.size();
     temp.resize(n);
     for (int i = 0; i < n; i++)

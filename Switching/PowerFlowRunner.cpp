@@ -2,11 +2,11 @@
 
 #include "PowerFlowRunner.h"
 
-using namespace std;
 
-complex updateVoltage(int tid, PowerFlowNode* powerFlowNode, SparseMatrixComplex admMat, complex* voltage, int slackBus, complex pq) {
-	complex result = 0;
-	complex diagonal = 0.0;
+
+cmplx updateVoltage(int tid, PowerFlowNode* powerFlowNode, SparseMatrixComplex admMat, cmplx* voltage, int slackBus, cmplx pq) {
+	cmplx result = 0;
+	cmplx diagonal = 0.0;
 	int eleIndex = admMat.row[tid];
 	int lastEleIndex = admMat.row[tid + 1];
 
@@ -21,52 +21,52 @@ complex updateVoltage(int tid, PowerFlowNode* powerFlowNode, SparseMatrixComplex
 		eleIndex++;
 	}
 
-	if (!voltage[tid].isZero() && !pq.isZero()) {
-		result += (pq.conj() / voltage[tid]);
+	if (!isZero(voltage[tid]) && !isZero(pq)) {
+		result += (conj(pq) / voltage[tid]);
 	}
 
 	result = result / diagonal;
 
-	if (powerFlowNode[tid].isPV && !result.isZero()) {
-		result = result / result.abs();
+	if (powerFlowNode[tid].isPV && !isZero(result)) {
+		result = result / abs(result);
 	}
 
 	return result;
 }
 
-complex updateReactivePower(int tid, PowerFlowNode* powerFlowNode, SparseMatrixComplex admMat, complex* voltage, int slackBus, complex pq) {
-	complex result = 0;
-	complex diagonal = 0.0;
+cmplx updateReactivePower(int tid, PowerFlowNode* powerFlowNode, SparseMatrixComplex admMat, cmplx* voltage, int slackBus, cmplx pq) {
+	cmplx result = 0;
+	cmplx diagonal = 0.0;
 	int eleIndex = admMat.row[tid];
 	int lastEleIndex = admMat.row[tid + 1];
 
 	if (powerFlowNode[tid].isPV) {
-		complex adjustReactivePower = 0;
+		cmplx adjustReactivePower = 0;
 
 		while (eleIndex < lastEleIndex) {
 			adjustReactivePower += (admMat.ele[eleIndex] * voltage[admMat.col[eleIndex]]);
 			eleIndex++;
 		}
 
-		return Complex(pq.realVal(), -(adjustReactivePower.conj() * voltage[tid]).imagVal());
+		return cmplx(pq.real(), -(conj(adjustReactivePower) * voltage[tid]).imag());
 	}
 	else {
 		return pq;
 	}
 }
 
-void jacobiMethodCPU(PowerFlowNode* powerFlowNode, SparseMatrixComplex admMat, complex* voltage, int nodeNum, int slackBus) {
+void jacobiMethodCPU(PowerFlowNode* powerFlowNode, SparseMatrixComplex admMat, cmplx* voltage, int nodeNum, int slackBus) {
 
-	voltage[slackBus] = Complex(1, 0);
+	voltage[slackBus] = cmplx(1, 0);
 
 	//power injected/leaving a bus
-	complex* pqs = new complex[nodeNum];
+	cmplx* pqs = new cmplx[nodeNum];
 
 	for (int tid = 0; tid < nodeNum; tid++) {
 		pqs[tid] = powerFlowNode[tid].pq;
 	}
-	real maxDiff = 1;
-	real diff = 0;
+	float maxDiff = 1;
+	float diff = 0;
 	int iter = 0;
 	while (maxDiff > 0.00001 && iter < 500000) {
 
@@ -76,11 +76,11 @@ void jacobiMethodCPU(PowerFlowNode* powerFlowNode, SparseMatrixComplex admMat, c
 				//updates reactive power at each generator
 				auto pq = pqs[tid];
 				auto newPQ = updateReactivePower(tid, powerFlowNode, admMat, voltage, slackBus, pqs[tid]);
-				auto delta = (pq - newPQ).imagVal();
+				auto delta = (pq - newPQ).imag();
 				//pqs[tid] = newPQ;
-				complex newVoltage = updateVoltage(tid, powerFlowNode, admMat, voltage, slackBus, pqs[tid]);
+				cmplx newVoltage = updateVoltage(tid, powerFlowNode, admMat, voltage, slackBus, pqs[tid]);
 
-				diff = (newVoltage - voltage[tid]).abs();
+				diff = abs((newVoltage - voltage[tid]));
 				if (diff > maxDiff) {
 					maxDiff = diff;
 				}
@@ -91,7 +91,7 @@ void jacobiMethodCPU(PowerFlowNode* powerFlowNode, SparseMatrixComplex admMat, c
 	}
 }
 
-void calculateAndPrintPower(SparseMatrixComplex admMat, PowerFlowNode* powerFlowNode, complex* voltage, size_t nodeNum) {
+void calculateAndPrintPower(SparseMatrixComplex admMat, PowerFlowNode* powerFlowNode, cmplx* voltage, size_t nodeNum) {
 
 	fprintf(stderr, "\nBus Power: \n");
 	for (size_t i = 0; i < nodeNum; i++)
@@ -100,32 +100,32 @@ void calculateAndPrintPower(SparseMatrixComplex admMat, PowerFlowNode* powerFlow
 		int lastEleIndex = admMat.row[i + 1];
 
 
-		complex result;
+		cmplx result;
 		while (eleIndex < lastEleIndex) {
 
 			int col = admMat.col[eleIndex];
 
-			//fprintf(stderr, "Current [%d, %d]: %f + %fj pu\n", i, col, (admMat.ele[eleIndex] * voltage[col]).realVal(), (admMat.ele[eleIndex] * voltage[col]).imagVal());
+			//fprintf(stderr, "Current [%d, %d]: %f + %fj pu\n", i, col, (admMat.ele[eleIndex] * voltage[col]).floatVal(), (admMat.ele[eleIndex] * voltage[col]).imagVal());
 
-			result += (admMat.ele[eleIndex] * voltage[admMat.col[eleIndex]]).conj() * voltage[i];
+			result += (admMat.ele[eleIndex] * conj(voltage[admMat.col[eleIndex]])) * voltage[i];
 			eleIndex++;
 		}
 
-		fprintf(stderr, "[%d] P + jQ: %f + %fj pu       P + jQ: %f + %fj MW       Bus Voltage = %f\n", i, result.realVal(), result.imagVal(), result.realVal() * powerFlowNode[i].systemVoltage, result.imagVal() * powerFlowNode[i].systemVoltage, powerFlowNode[i].systemVoltage);
+		fprintf(stderr, "[%d] P + jQ: %f + %fj pu       P + jQ: %f + %fj MW       Bus Voltage = %f\n", i, result.real(), result.imag(), result.real() * powerFlowNode[i].systemVoltage, result.imag() * powerFlowNode[i].systemVoltage, powerFlowNode[i].systemVoltage);
 	}
 
 }
 
-vector<complex> initVoltage(vector<PowerFlowNode> powerFlowNode) {
-	vector<complex> h_voltage(powerFlowNode.size());
+vector<cmplx> initVoltage(vector<PowerFlowNode> powerFlowNode) {
+	vector<cmplx> h_voltage(powerFlowNode.size());
 
 	for (size_t i = 0; i < powerFlowNode.size(); i++)
 	{
 		if (powerFlowNode[i].isPV) {
-			h_voltage[i] = Complex(1);
+			h_voltage[i] = cmplx(1);
 		}
 		else {
-			h_voltage[i] = Complex(0);
+			h_voltage[i] = cmplx(0);
 		}
 
 	}
@@ -133,7 +133,7 @@ vector<complex> initVoltage(vector<PowerFlowNode> powerFlowNode) {
 	return h_voltage;
 }
 
-void powerFlowRunner(PowerFlowNode* h_powerFlowNode, SparseMatrixComplex h_admMat, complex* h_voltage, int nodeNum, int slackBus) {
+void powerFlowRunner(PowerFlowNode* h_powerFlowNode, SparseMatrixComplex h_admMat, cmplx* h_voltage, int nodeNum, int slackBus) {
 
 	auto start = std::chrono::high_resolution_clock::now();
 	//jacobiMethod<<<1, 30>>>(d_powerFlowNode, d_admMat, d_voltage, 0);
@@ -153,7 +153,7 @@ void powerFlowRunner(PowerFlowNode* h_powerFlowNode, SparseMatrixComplex h_admMa
 	//copyToHost(&h_voltage[0], d_voltage, h_powerFlowNode.size());
 	for (int i = 0; i < nodeNum; i++) {
 		h_powerFlowNode[i].unitVoltage = h_voltage[i];
-		fprintf(stderr, "V[%d]: %f + %fj - |V| = %f\n", i, h_voltage[i].realVal(), h_voltage[i].imagVal(), h_voltage[i].abs());
+		fprintf(stderr, "V[%d]: %f + %fj - |V| = %f\n", i, h_voltage[i].real(), h_voltage[i].imag(), abs(h_voltage[i]));
 	}
 
 	//calculateAndPrintPower(h_admMat, h_powerFlowNode, h_voltage, nodeNum);

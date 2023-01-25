@@ -1,10 +1,55 @@
 #include "FileReader.h"
 
-using namespace std;
+//string workingDir = "C:\\Users\\Tom\\Desktop\\Grids\\BRB\\";
+string workingDir = "/home/davist/CLionProjects/Switching/Grids/BRB/";
 
-string workingDir = "C:\\Users\\Tom\\Desktop\\Grids\\BRB\\";
+//regex whiteSpace = regex("\\s+");
+std::vector<std::string> split(std::string& t, std::string delimiter)
+{
+    char* p = &t.at(0);
+    std::string result = "";
+    std::vector<std::string> out = {};
+    size_t sum;
+    for (size_t i = 0; i < t.length(); i++)
+    {
+        if  (*p != delimiter[0])
+        {
+            result.push_back(*p);
+            p++;
+            sum = 1;
+        }
+        else
+        {
+            char* d = &delimiter.at(0);
+            std::string s = "";
+            for(size_t j = 0; j < delimiter.length(); j++)
+            {
+                if(*p == *d)
+                {
+                    s.push_back(*p);
+                    d++;
+                    p++;
+                    sum = j+1;
+                    if (j > 0)
+                        ++i;
+                }
+                else
+                {
+                    result +=s;
+                    break;
+                }
+            }
+            if (sum == (delimiter.length()))
+            {
+                out.push_back(result);
+                result="";
+            }
+        }
+    }
 
-regex whiteSpace = regex("\\s+");
+    out.push_back(result);
+    return out;
+}
 
 vector<vector<string>> readGridFile(string fileDir) {
 	fstream myFile;
@@ -21,12 +66,11 @@ vector<vector<string>> readGridFile(string fileDir) {
 	while (getline(myFile, line)) {
 		cells.push_back(vector<string>());
 
-		sregex_token_iterator iter = sregex_token_iterator(line.begin(), line.end(), whiteSpace, -1);
-		sregex_token_iterator end;
+        std::vector<std::string> s = split(line, '');
 
-		for (; iter != end; ++iter) {
-			cells[cells.size() - 1].push_back(string(*iter));
-		}
+		for (int i = 0 ; i < s.size(); i++) {
+            cells[cells.size() - 1].push_back(s[i]);
+        }
 	}
 
 	return cells;
@@ -36,12 +80,12 @@ vector<BusData> initialiseBusData(vector<FileGen> gen, vector<FileBus> buses) {
 	assert(gen.size() == buses.size());
 
 	vector<BusData> abomData = vector<BusData>();
-	abomData.push_back(BusData::makeBusData(Complex(0), Complex(0), Complex(0), Complex(0), 1, 0, 1, 0));
+	abomData.push_back(BusData::makeBusData(cmplx(0), cmplx(0), cmplx(0), cmplx(0), 1, 0, 1, 0));
 
 
 	for (size_t i = 0; i < gen.size(); i++)
 	{
-		auto node = BusData::makeBusData(Complex(buses[i].Pd, buses[i].Qd), gen[i].power, gen[i].minPower, gen[i].maxPower, buses[i].baseKV, gen[i].cost, buses[i].type, i + 1);
+		auto node = BusData::makeBusData(cmplx(buses[i].Pd, buses[i].Qd), gen[i].power, gen[i].minPower, gen[i].maxPower, buses[i].baseKV, gen[i].cost, buses[i].type, i + 1);
 
 		abomData.push_back(node);
 	}

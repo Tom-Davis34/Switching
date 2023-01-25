@@ -5,9 +5,9 @@
 class PowerFlowNode {
 public:
 	int node;
-	complex pq;
+	cmplx pq;
 	bool isPV;
 	bool isLoad;
-	real systemVoltage;
-	complex unitVoltage;
+	float systemVoltage;
+	cmplx unitVoltage;
 };

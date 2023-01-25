@@ -1,4 +1,4 @@
-#pragma once
+//#pragma once
 
 #include <iostream>
 #include <string>
@@ -13,6 +13,6 @@
 #include "AStar.h"
 #include "Runge-Kutta.h"
 
-using namespace std;
+
 
 int main();

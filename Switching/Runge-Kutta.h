@@ -5,21 +5,21 @@
 #include "SparseMatrix.h"
 
 
-real ρ = 28;
-real σ = 10;
-real β = 8 / 3;
-//x1` = σ(x2 - x1)
-//x2` = x1(ρ - x3) - x2
-//x3` = x1*x2 - β*x3
-vector<real> f(vector<real> x) {
-	return vector<real> {
-		σ*(x[1] - x[0]),
-			x[0] * (ρ - x[2]) - x[1],
-			x[0]* x[1] - β * x[2]
+float rho = 28;
+float sigma = 10;
+float beta = 8 / 3;
+//x1` = sigma(x2 - x1)
+//x2` = x1(rho - x3) - x2
+//x3` = x1*x2 - beta*x3
+vector<float> f(vector<float> x) {
+	return vector<float> {
+		sigma*(x[1] - x[0]),
+			x[0] * (rho - x[2]) - x[1],
+			x[0]* x[1] - beta * x[2]
 	};
 }
 
-vector<real> rungeKuttaStep(vector<real> x, real dt) {
+vector<float> rungeKuttaStep(vector<float> x, float dt) {
 	auto f1 = f(x);
 	auto f2 = f(f1 * (dt / 2) + x);
 	auto f3 = f(f2 * (dt / 2) + x);
@@ -28,8 +28,8 @@ vector<real> rungeKuttaStep(vector<real> x, real dt) {
 	return x + (dt / 6) * (f1 + 2 * f2 + 2 * f3 + f4);
 }
 
-vector<real> buildX() {
-	return  vector<real> {
+vector<float> buildX() {
+	return  vector<float> {
 		-8,
 		8,
 		27
@@ -37,9 +37,9 @@ vector<real> buildX() {
 }
 
 void rungeKutta4Lorentz() {
-	real startTime = 0;
-	real endTime = 16;
-	real dt = 0.01;
+	float startTime = 0;
+	float endTime = 16;
+	float dt = 0.01;
 	int numIter = (endTime - startTime) / dt;
 
 	ofstream myfile;
@@ -77,7 +77,7 @@ SparseMatrixReal buildMatrix(PowerGrid* grid, int cbId, vector<PowerFlowNode> st
 
 }
 
-vector<real> buildX(PowerGrid* grid, int cbId) {
+vector<float> buildX(PowerGrid* grid, int cbId) {
 
 }
 

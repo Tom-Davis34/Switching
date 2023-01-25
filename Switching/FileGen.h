@@ -6,24 +6,24 @@
 #include "common.h"
 #include "BusData.h"
 
-using namespace std;
+
 
 class FileGen {
 public:
 	int busId;
 
-	complex power;
-	complex minPower;
-	complex maxPower;
+	cmplx power;
+	cmplx minPower;
+	cmplx maxPower;
 
-	real cost;
+	float cost;
 
 	FileGen() {
 		busId = 0;
 
-		power = Complex(0.0f, 0.0f);
-		minPower = Complex(0.0f, 0.0f);
-		maxPower = Complex(0.0f, 0.0f);
+		power = cmplx(0.0f, 0.0f);
+		minPower = cmplx(0.0f, 0.0f);
+		maxPower = cmplx(0.0f, 0.0f);
 
 		cost = 0.0f;
 	}
@@ -40,9 +40,9 @@ public:
 		auto gen = FileGen();
 		gen.busId = stoi(lineGen[0]);
 
-		gen.power = Complex(stof(lineGen[1]), stof(lineGen[2]));
-		gen.minPower = Complex(stof(lineGen[9]), stof(lineGen[4]));
-		gen.maxPower = Complex(stof(lineGen[8]), stof(lineGen[3]));
+		gen.power = cmplx(stof(lineGen[1]), stof(lineGen[2]));
+		gen.minPower = cmplx(stof(lineGen[9]), stof(lineGen[4]));
+		gen.maxPower = cmplx(stof(lineGen[8]), stof(lineGen[3]));
 
 		return gen;
 	}

@@ -12,18 +12,18 @@ class BusData {
 public:
 	int node;
 
-	complex load;
-	complex gen;
-	complex pq;
+	cmplx load;
+	cmplx gen;
+	cmplx pq;
 
 	bool isPV;
 	int type;
 
-	real voltage;
-	real lineCharge;
-	real cost;
+	float voltage;
+	float lineCharge;
+	float cost;
 
-	__host__ __device__ static __inline__ BusData makeBusData(complex load, complex gen, complex genMin, complex genMax, real voltage, real cost, int type, int node) {
+	static  BusData makeBusData(cmplx load, cmplx gen, cmplx genMin, cmplx genMax, float voltage, float cost, int type, int node) {
 		BusData res = BusData();
 
 		res.isPV = type == 2;
@@ -31,10 +31,10 @@ public:
 		res.type = type;
 		res.node = node;
 
-		res.load = complex(load)/voltage;
-		res.gen = complex(gen)/voltage;
-		res.voltage = real(voltage);
-		res.cost = real(cost);
+		res.load = cmplx(load)/voltage;
+		res.gen = cmplx(gen)/voltage;
+		res.voltage = float(voltage);
+		res.cost = float(cost);
 
 		res.pq = res.gen - res.load;
 

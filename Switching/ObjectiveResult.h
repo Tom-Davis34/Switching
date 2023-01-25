@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-using namespace std;
+
 
 enum ConType {
 	V, Steps, 
@@ -13,9 +13,9 @@ enum ConType {
 class Contribution {
 public:
 	string reason;
-	real amount;
+	float amount;
 	
-	Contribution(string reason, real amount) {
+	Contribution(string reason, float amount) {
 		this->reason = reason;
 		this->amount = amount;
 	}

@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <regex>
 #include <cassert>
 #include "FileBus.h"
 #include "FileGen.h"

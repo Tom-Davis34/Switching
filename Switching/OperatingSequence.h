@@ -2,8 +2,8 @@
 
 #include <vector>
 #include <ostream>
-#include "Control.h";
-#include "Grid.h";
+#include "Control.h"
+#include "Grid.h"
 #include <deque>
 #include <iostream>
 #include <list>
@@ -11,7 +11,7 @@
 #include <queue>
 #include <utility>
 
-using namespace std;
+
 
 
 

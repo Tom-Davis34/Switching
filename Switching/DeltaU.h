@@ -19,7 +19,7 @@ public:
 		return state1 * state2;
 	}
 
-	static int not(int state) {
+	static int negate(int state) {
 		return (int)(state * -1);
 	}
 

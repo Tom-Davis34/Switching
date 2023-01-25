@@ -11,24 +11,24 @@
 #include "Disconnector.h"
 #include <cassert>
 
-using namespace std;
+
 
 
 class SparseMatrixRealBuilder {
 public:
-    vector<map<int, real>> rows;
+    vector<map<int, float>> rows;
 
     SparseMatrixRealBuilder(int rowsNum) {
         for (size_t i = 0; i < rowsNum; i++)
         {
-            rows.push_back(map<int, real>());
+            rows.push_back(map<int, float>());
         }
     };
 
-    void plus(int row, int col, real ele) {
-        map<int, real> rowMap = rows[row];
+    void plus(int row, int col, float ele) {
+        map<int, float> rowMap = rows[row];
 
-        real matrixElement = rows[row][col];
+        float matrixElement = rows[row][col];
         if (rows[row].find(col) == rows[row].end()) {
             rows[row][col] = ele;
         }
@@ -37,11 +37,11 @@ public:
         }
     }
 
-    void subtract(int row, int col, real ele) {
+    void subtract(int row, int col, float ele) {
 
         //assert(row != 1 && col != 2);
 
-        map<int, real>* rowMap = &(rows[row]);
+        map<int, float>* rowMap = &(rows[row]);
 
         if ((*rowMap).find(col) == (*rowMap).end()) {
             (*rowMap)[col] = ele * -1.0f;
@@ -51,38 +51,38 @@ public:
         }
     }
 
-    void addCircuits(const vector<Circuit>& lines, const vector<int>& nodeToSuperNode, const vector<complex>& voltages) {
+    void addCircuits(const vector<Circuit>& lines, const vector<int>& nodeToSuperNode, const vector<cmplx>& voltages) {
         for (int k = 0; k < lines.size(); k++) {
             Circuit cir = lines[k];
             int i = nodeToSuperNode[cir.fbus];
             int j = nodeToSuperNode[cir.tbus];
-            real cap = cir.lineCharge;
-            complex imp = Complex(1) / cir.admittance;
-            real r = imp.x;
-            real ind = imp.y;
+            float cap = cir.lineCharge;
+            cmplx imp = cmplx(1) / cir.admittance;
+            float r = imp.real();
+            float ind = imp.imag();
             
 
         }
     }
 
-    void addGens(const vector<Circuit>& lines, const vector<int>& nodeToSuperNode, const vector<complex>& voltages) {
+    void addGens(const vector<Circuit>& lines, const vector<int>& nodeToSuperNode, const vector<cmplx>& voltages) {
         for (int k = 0; k < lines.size(); k++) {
             Circuit cir = lines[k];
             int i = nodeToSuperNode[cir.fbus];
             int j = nodeToSuperNode[cir.tbus];
-            real chrg = cir.lineCharge;
-            real ladm = cir.admittance;
+            float chrg = cir.lineCharge;
+//            float ladm = cir.admittance;
 
         }
     }
 
-    void addLoads(const vector<Circuit>& lines, const vector<int>& nodeToSuperNode, const vector<complex>& voltages) {
+    void addLoads(const vector<Circuit>& lines, const vector<int>& nodeToSuperNode, const vector<cmplx>& voltages) {
         for (int k = 0; k < lines.size(); k++) {
             Circuit cir = lines[k];
             int i = nodeToSuperNode[cir.fbus];
             int j = nodeToSuperNode[cir.tbus];
-            real chrg = cir.lineCharge;
-            real ladm = cir.admittance;
+            float chrg = cir.lineCharge;
+//            float ladm = cir.admittance;
 
         }
     }
@@ -98,14 +98,14 @@ public:
 
         int* rowVector = new int[rows.size() + 1];
         int* colVector = new int[num];
-        real* eleVector = new real[num];
+        float* eleVector = new float[num];
 
         for (int i = 0; i < rows.size(); i++)
         {
             rowVector[i] = cursor;
-            map<int, real> row = rows[i];
+            map<int, float> row = rows[i];
 
-            //for (map<int, real>::const_iterator iter = row.begin(); iter != row.end(); iter++)
+            //for (map<int, float>::const_iterator iter = row.begin(); iter != row.end(); iter++)
             //{
             //    if ((iter->first) == i ){
             //        colVector[(size_t)cursor] = (iter->first);
@@ -114,7 +114,7 @@ public:
             //    }
             //}
 
-            for (map<int, real>::const_iterator iter = row.begin(); iter != row.end(); iter++)
+            for (map<int, float>::const_iterator iter = row.begin(); iter != row.end(); iter++)
             {
                 colVector[cursor] = (iter->first);
                 eleVector[cursor] = (iter->second);
@@ -125,26 +125,26 @@ public:
 
         rowVector[rows.size()] = cursor;
 
-        return SparseMatrixReal(dim3(rows.size(), rows.size()), &rowVector[0], &colVector[0], &eleVector[0], cursor);
+        return SparseMatrixReal(&rowVector[0], &colVector[0], &eleVector[0], cursor);
     }
 };
 
 class SparseMatrixComplexBuilder {
 public:
-    vector<map<int, complex>> rows;
+    vector<map<int, cmplx>> rows;
 
     SparseMatrixComplexBuilder(int rowsNum) {
         for (size_t i = 0; i < rowsNum; i++)
         {
-            rows.push_back(map<int, complex>());
-            rows[i][i] = Complex(0);
+            rows.push_back(map<int, cmplx>());
+            rows[i][i] = cmplx(0);
         }
     };
 
-    void plus(int row, int col, complex ele) {
-        map<int, complex> rowMap = rows[row];
+    void plus(int row, int col, cmplx ele) {
+        map<int, cmplx> rowMap = rows[row];
 
-        complex matrixElement = rows[row][col];
+        cmplx matrixElement = rows[row][col];
         if (rows[row].find(col) == rows[row].end()) {
             rows[row][col] = ele;
         }
@@ -153,11 +153,11 @@ public:
         }
     }
 
-    void subtract(int row, int col, complex ele) {
+    void subtract(int row, int col, cmplx ele) {
 
         //assert(row != 1 && col != 2);
 
-        map<int, complex>* rowMap = &(rows[row]);
+        map<int, cmplx>* rowMap = &(rows[row]);
 
         if ((*rowMap).find(col) == (*rowMap).end()) {
             (*rowMap)[col] = ele * -1.0f;
@@ -172,12 +172,12 @@ public:
             Circuit cir = lines[k];
             int i = nodeToSuperNode[cir.fbus];
             int j = nodeToSuperNode[cir.tbus];
-            real chrg = cir.lineCharge;
-            complex ladm = cir.admittance;
-            real tr = cir.transformerRatio;
-            real tap2 = tr * tr;
-            plus(i, i, ladm + Complex(0.0f, 0.5f * chrg));
-            plus(j, j, ladm + Complex(0.0f, 0.5f * chrg));
+            float chrg = cir.lineCharge;
+            cmplx ladm = cir.admittance;
+            float tr = cir.transformerRatio;
+            float tap2 = tr * tr;
+            plus(i, i, ladm + cmplx(0.0f, 0.5f * chrg));
+            plus(j, j, ladm + cmplx(0.0f, 0.5f * chrg));
             subtract(i, j, ladm);
             subtract(j, i, ladm);
         }
@@ -194,12 +194,12 @@ public:
 
         int* rowVector = new int[rows.size() + 1];
         int* colVector = new int[num];
-        complex* eleVector = new complex[num];
+        cmplx* eleVector = new cmplx[num];
 
         for (int i = 0; i < rows.size(); i++)
         {
             rowVector[i] = cursor;
-            map<int, complex> row = rows[i];
+            map<int, cmplx> row = rows[i];
 
             //for (map<int, complex>::const_iterator iter = row.begin(); iter != row.end(); iter++)
             //{
@@ -210,18 +210,18 @@ public:
             //    }
             //}
 
-            for (map<int, complex>::const_iterator iter = row.begin(); iter != row.end(); iter++)
+            for (map<int, cmplx>::const_iterator iter = row.begin(); iter != row.end(); iter++)
             {
                     colVector[cursor] = (iter->first);
                     eleVector[cursor] = (iter->second);
-                    fprintf(stderr, "[%d, %d]: %f + %fj\n", i, colVector[cursor], eleVector[cursor].realVal(), eleVector[cursor].imagVal());
+                    fprintf(stderr, "[%d, %d]: %f + %fj\n", i, colVector[cursor], eleVector[cursor].real(), eleVector[cursor].imag());
                     cursor++;
             }
         }
 
         rowVector[rows.size()] = cursor;
 
-        return SparseMatrixComplex(dim3(rows.size(), rows.size()), &rowVector[0] , &colVector[0], &eleVector[0], cursor);
+        return SparseMatrixComplex( &rowVector[0] , &colVector[0], &eleVector[0], cursor);
     }
 };
 

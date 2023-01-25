@@ -7,6 +7,6 @@
 #include <vector>
 #include <chrono>
 
-void powerFlowRunner(PowerFlowNode* h_powerFlowNode, SparseMatrixComplex h_admMat, complex* h_voltage, int nodeNum, int slackBus);
+void powerFlowRunner(PowerFlowNode* h_powerFlowNode, SparseMatrixComplex h_admMat, cmplx* h_voltage, int nodeNum, int slackBus);
 
 

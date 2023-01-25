@@ -7,17 +7,17 @@
 #include "BusData.h"
 #include "Edge.h"
 
-using namespace std;
+
 
 class Circuit : public Edge {
 public:
 	int fbus;
 	int tbus;
 
-	complex admittance;
-	real lineCharge;
+	cmplx admittance;
+	float lineCharge;
 
-	real transformerRatio;
+	float transformerRatio;
 
 	int num;
 
@@ -43,8 +43,8 @@ public:
 		circuit.fbus = stoi(line[0]);
 		circuit.tbus = stoi(line[1]);
 
-		auto Z = Complex(stof(line[2]), stof(line[3]));
-		circuit.admittance = Complex(1.0f) / Complex(stof(line[2]), stof(line[3]));
+		auto Z = cmplx(stof(line[2]), stof(line[3]));
+		circuit.admittance = cmplx(1.0f) / cmplx(stof(line[2]), stof(line[3]));
 		circuit.lineCharge = stof(line[4]);
 
 		circuit.transformerRatio = stof(line[8]);

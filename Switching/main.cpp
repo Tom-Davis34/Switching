@@ -78,10 +78,10 @@ inline ostream& operator<<(ostream& os, const BusData& bd) {
 //	return os;
 //}
 
-inline ostream& operator<<(ostream& os, const ObjectiveResult& or) {
-	for (size_t i = 0; i < or.contributions.size(); i++)
+inline ostream& operator<<(ostream& os, const ObjectiveResult& oresult) {
+	for (size_t i = 0; i < oresult.contributions.size(); i++)
 	{
-		os << or.contributions[i];
+		os << oresult.contributions[i];
 	}
 	return os;
 }
@@ -125,14 +125,14 @@ inline ostream& operator<<(ostream& os, const PowerGrid& grid)
 	for (int i = 0; i < grid.cs.size(); i++)
 	{
 		Circuit* cir = (Circuit*)&(grid.cs[i]);
-		os << *cir << "[" << cir->fbus << ", " << cir->tbus << "]: " << cir->admittance.realVal() << " + " << cir->admittance.imagVal() << "j\n";
+		os << *cir << "[" << cir->fbus << ", " << cir->tbus << "]: " << cir->admittance.real() << " + " << cir->admittance.imag() << "j\n";
 	}
 
 	os << "\nBusData\n";
 	for (int i = 0; i < grid.bds.size(); i++)
 	{
 		BusData* bd = (BusData*)&(grid.bds[i]);
-		os << *bd << ": " << bd->pq.realVal() << " + " << bd->pq.imagVal() << "j\n";
+		os << *bd << ": " << bd->pq.real() << " + " << bd->pq.imag() << "j\n";
 	}
 
 	os << "\nNodesToEdges\n";
@@ -188,5 +188,5 @@ int runLorentz() {
 }
 
 int main() {
-	return runLorentz();
+	return run1();
 }

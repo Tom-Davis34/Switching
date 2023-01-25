@@ -7,8 +7,6 @@
 #include "Grid.h"
 #include "BusData.h" 
 
-using namespace std;
-
 inline ostream& operator<<(ostream& os, const Disconnector& cb)
 {
 	os << "D" << cb.num;

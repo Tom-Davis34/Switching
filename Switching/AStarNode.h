@@ -35,7 +35,7 @@ public:
 	vector<Contribution> otherObjective;
 	vector<Contribution> steadyStateObjective;
 	vector<Contribution> transientObjective;
-	real sum;
+	float sum;
 	int depth;
 
 	AStarNode() {
@@ -149,7 +149,7 @@ public:
 		AStarNode** retVal = new AStarNode*[grid->u.size()];
 
 		for (int i = 0; i < grid->u.size(); i++) {
-			AStarNode* n = new AStarNode(grid, this, i, DeltaU::not(grid->u[i]));
+			AStarNode* n = new AStarNode(grid, this, i, DeltaU::negate(grid->u[i]));
 			retVal[i] = n;
 		}
 
@@ -172,12 +172,12 @@ public:
 		}
 	}
 
-	void addH(Contribution& newContribution) {
+	void addH(Contribution newContribution) {
 		hObjective.push_back(newContribution);
 		sum += newContribution.amount;
 	}
 
-	void addOtherObjective(Contribution& newContribution) {
+	void addOtherObjective(Contribution newContribution) {
 		otherObjective.push_back(newContribution);
 		sum += newContribution.amount;
 	}
@@ -266,8 +266,8 @@ public:
 		return (*this).sum > rhs.sum;
 	}
 
-	real getHObjective() const {
-		real sum = 0;
+	float getHObjective() const {
+		float sum = 0;
 
 		for (auto con : hObjective) {
 			sum += con.amount;
@@ -276,8 +276,8 @@ public:
 		return sum;
 	}
 
-	real getOtherObjective() const {
-		real sum = 0;
+	float getOtherObjective() const {
+		float sum = 0;
 
 		for (auto con : otherObjective) {
 			sum += con.amount;
@@ -286,8 +286,8 @@ public:
 		return sum;
 	}
 
-	real getSteadyStateObjective() const {
-		real sum = 0;
+	float getSteadyStateObjective() const {
+		float sum = 0;
 
 		for (auto con : steadyStateObjective) {
 			sum += con.amount;
@@ -296,8 +296,8 @@ public:
 		return sum;
 	}
 
-	real getTransientObjective() const {
-		real sum = 0;
+	float getTransientObjective() const {
+		float sum = 0;
 
 		for (auto con : transientObjective) {
 			sum += con.amount;

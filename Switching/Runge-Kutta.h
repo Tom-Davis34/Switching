@@ -4,13 +4,6 @@
 #include "common.h"
 #include "SparseMatrix.h"
 
-#define RG 0.0001
-#define LG 0.001
-#define CG 0.0001
-
-#define CL 0.001
-#define CL 0.001
-#define CL 0.001
 
 float rho = 28;
 float sigma = 10;
@@ -63,6 +56,16 @@ void rungeKutta4Lorentz() {
 	myfile.close();
 }
 
+vector<float> createZeroVector(int size) {
+	vector<float> vec = vector<float>(size);
+
+	for (int i = 0;i < size; i++) {
+		vec[i] = 0;
+	}
+
+	return vec;
+}
+
 SparseMatrixReal buildMatrix(PowerGrid* grid, int cbId, vector<PowerFlowNode> startingVoltages) {
 	grid->createSubGraph();
 
@@ -71,29 +74,16 @@ SparseMatrixReal buildMatrix(PowerGrid* grid, int cbId, vector<PowerFlowNode> st
 	int cirCurrentNum = grid->cs.size();
 	int totalRows = voltageNum + currentFromGndNum + cirCurrentNum;
 	int genNum = grid->getGenNum();
-	 
-	int indexOfCurrentFromGnd = voltageNum;
-	int indexOfCirCurrentNum = voltageNum + currentFromGndNum;
+
 	//totalRows x totalRows
 	SparseMatrixRealBuilder smbA = SparseMatrixRealBuilder(totalRows);
-	//totalRows x genNum
+	//totalRows x totalRows
 	SparseMatrixRealBuilder smbB = SparseMatrixRealBuilder(totalRows);
+	vector<float> gens(totalRows)
 
 
-	for (size_t i = 0; i < voltageNum; i++)
-	{
-		vector<BusData> gens = grid->getGens(i);
 
-		float Lg = LG / gens.size();
-		float Rg = RG / gens.size();
-		float Cg = gens.size()*CG;
 
-		int indexOfI = i + indexOfCurrentFromGnd;
-		int indexOfV = i;
-
-		//smbA
-	}
-	
 
 	return smbA.build();
 

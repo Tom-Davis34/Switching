@@ -18,8 +18,6 @@
 #include <unordered_set>
 #include <functional>
 
-
-
 class PowerGrid {
 public:
 	vector<CircuitBreaker> cbs;
@@ -65,8 +63,8 @@ public:
 		initNodesToEdges();
 	}
 
-	void addTargetU(int index, int val) {
-		targetU[index] = val;
+	void addTargetU(DeltaU du) {
+		targetU[du.index] = du.newU;
 	}
 
 	void applyDeltaU(DeltaU deltaU) {
@@ -75,9 +73,15 @@ public:
 		}
 	}
 
+	void resetTargetU() {
+		for (int i = 0; i < cbs.size() + ds.size(); i++) {
+			targetU[i] = CLOSED;
+		}
+	}
+
 	void resetU() {
 		for (int i = 0; i < cbs.size() + ds.size(); i++) {
-			u[i] = 1;
+			u[i] = CLOSED;
 		}
 	}
 
@@ -159,61 +163,177 @@ public:
 		}
 	}
 
+	bool isSwitch(Edge*& edge) {
+		if (edge->type() == CB || edge->type() == Dis) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	bool connectedToTwoSwtiches(int node) {
+		auto connectedEdges = nodesToEdges[node];
+		if (connectedEdges.size() != 2) {
+			return false;
+		}
+
+		return isSwitch(connectedEdges[0]) && isSwitch(connectedEdges[1]);
+	}
+
+	bool connectedToTwoEdges(int node) {
+		auto connectedEdges = nodesToEdges[node];
+		return connectedEdges.size() == 2;
+	}
+
 	bool noOp(int node) {
 		return true;
 	}
 
-	bool contains(unordered_set<int> &set, const int &node) {
-		return !(set.find(node) == set.end());
+bool contains(unordered_set<int>& set, const int& node) {
+	return !(set.find(node) == set.end());
+}
+
+vector<int> plagueAlgo(int const& startNode, unordered_set<int>& alreadyInfected) {
+	if (contains(alreadyInfected, startNode)) {
+		return vector<int>();
 	}
 
-	vector<int> plagueAlgo(int const &startNode, unordered_set<int>& alreadyInfected) {
-		if (contains(alreadyInfected, startNode)) {
-			return vector<int>();
+	stack<int> stk = stack<int>();
+	vector<int> infectedNodes = vector<int>();
+	stk.push(startNode);
+
+	int currentNode;
+	while (!stk.empty()) {
+		currentNode = stk.top();
+		stk.pop();
+
+		if (contains(alreadyInfected, currentNode)) {
+			continue;
 		}
-		
-		stack<int> stk = stack<int>();
-		vector<int> infectedNodes = vector<int>();
-		stk.push(startNode);
 
-		int currentNode;
-		while (!stk.empty()) {
-			currentNode = stk.top();
-			stk.pop();
+		infectedNodes.push_back(currentNode);
+		alreadyInfected.insert(currentNode);
 
-			if (contains(alreadyInfected, currentNode)) {
-				continue;
-			}
+		vector<Edge*> edgesForCurrentNode = nodesToEdges[currentNode];
+		for (int i = 0; i < edgesForCurrentNode.size(); i++) {
+			if (isSwitch(edgesForCurrentNode[i])) {
+				assert(
+					edgesForCurrentNode[i]->getFNode() == currentNode ||
+					edgesForCurrentNode[i]->getTNode() == currentNode
+				);
 
-			infectedNodes.push_back(currentNode);
-			alreadyInfected.insert(currentNode);
+				int otherNode;
+				if (edgesForCurrentNode[i]->getFNode() == currentNode) {
+					otherNode = edgesForCurrentNode[i]->getTNode();
+				}
+				else {
+					otherNode = edgesForCurrentNode[i]->getFNode();
+				}
 
-			vector<Edge*> edgesForCurrentNode = nodesToEdges[currentNode];
-			for (int i = 0; i < edgesForCurrentNode.size(); i++) {
-				if (isClosedSwitch(edgesForCurrentNode[i])) {
-					assert(
-						edgesForCurrentNode[i]->getFNode() == currentNode ||
-						edgesForCurrentNode[i]->getTNode() == currentNode
-					);
 
-					int otherNode;
-					if (edgesForCurrentNode[i]->getFNode() == currentNode) {
-						otherNode = edgesForCurrentNode[i]->getTNode();
-					}
-					else {
-						otherNode = edgesForCurrentNode[i]->getFNode();
-					}
 
-					if (noOp(otherNode) && !contains(alreadyInfected, otherNode)) {
-						//infect other node
-						stk.push(otherNode);
-					}
+				if (noOp(otherNode) && !contains(alreadyInfected, otherNode)) {
+					//infect other node
+					stk.push(otherNode);
 				}
 			}
 		}
-
-		return infectedNodes;
 	}
+
+	return infectedNodes;
+}
+
+bool loadOrGen(int node) {
+	return !isZero(bds[node].gen + bds[node].load);
+}
+
+vector<int> deepClone(vector<int> vec) {
+	vector<int> newVec = vector<int>();
+
+	for (int i : vec) {
+		newVec.push_back(i);
+	}
+
+	return newVec;
+}
+
+//return a list of targetU
+vector<DeltaU> getOutage(int const& outageEdge) {
+	int node1 = edges[outageEdge]->getFNode();
+	int node2 = edges[outageEdge]->getTNode();
+
+	if (loadOrGen(node1) || loadOrGen(node2)) {
+		cout << "No outage for " << outageEdge;
+		return vector<DeltaU>();
+	}
+
+	unordered_set<int> alreadyInfected = unordered_set<int>();
+
+	stack<int> stk = stack<int>();
+	stk.push(node1);
+	stk.push(node2);
+
+	int currentNode;
+	while (!stk.empty()) {
+		currentNode = stk.top();
+		stk.pop();
+
+		if (contains(alreadyInfected, currentNode)) {
+			continue;
+		}
+
+		alreadyInfected.insert(currentNode);
+
+		vector<Edge*> edgesForCurrentNode = nodesToEdges[currentNode];
+		for (int i = 0; i < edgesForCurrentNode.size(); i++) {
+			//if (isSwitch(edgesForCurrentNode[i])) {
+			//	continue;
+			//}
+
+			int otherNode;
+			if (edgesForCurrentNode[i]->getFNode() == currentNode) {
+				otherNode = edgesForCurrentNode[i]->getTNode();
+			}
+			else {
+				otherNode = edgesForCurrentNode[i]->getFNode();
+			}
+
+			if (!isZero(bds[otherNode].pq)) {
+				cout << "No outage for " << outageEdge;
+				return vector<DeltaU>();
+			}
+
+			if (!isSwitch(edgesForCurrentNode[i]) || connectedToTwoEdges(otherNode)) {
+				stk.push(otherNode);
+			}
+
+		}
+	}
+
+	vector<DeltaU> targetU = vector<DeltaU>();
+	for (int i = 0; i < cbs.size() + ds.size(); i++) {
+		auto edge = edges[i];
+		int numOfNodesInfectedForEdge = 0;
+		if (contains(alreadyInfected, edge->getFNode())) {
+			numOfNodesInfectedForEdge++;
+		}
+		if (contains(alreadyInfected, edge->getTNode())) {
+			numOfNodesInfectedForEdge++;
+		}
+
+		if (numOfNodesInfectedForEdge == 2) {
+			cout << *edge << " target U: " << 0 <<"\n";
+			targetU.push_back(DeltaU(i, 0));
+		}
+		else if (numOfNodesInfectedForEdge == 1) {
+			cout << *edge << " target U: OPEN" << "\n";
+			targetU.push_back(DeltaU(i, OPEN));
+		}
+	}
+
+
+	return targetU;
+}
 
 	bool nodeIsDead(int const& startNode) {
 		if (!isZero(bds[startNode].pq)) {
@@ -378,32 +498,6 @@ public:
 		}
 
 		return genNum;
-	}
-
-	const vector<BusData> getGens(int superNodeId) const {
-		vector<BusData> gens = vector<BusData>();
-
-		for (auto nodeList : superNodeToNode[superNodeId])
-		{
-				if (!isZero(bds[nodeList].gen)) {
-					gens.push_back(bds[nodeList]);
-				}
-		}
-
-		return gens;
-	}
-
-	const vector<BusData> getLoads(int superNodeId) const {
-		vector<BusData> loads = vector<BusData>();
-
-		for (auto nodeList : superNodeToNode[superNodeId])
-		{
-			if (!isZero(bds[nodeList].load)) {
-				loads.push_back(bds[nodeList]);
-			}
-		}
-
-		return loads;
 	}
 
 	static PowerGrid* buildGridFromFiles() {

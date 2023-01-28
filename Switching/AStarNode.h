@@ -69,6 +69,7 @@ public:
 			voltages = grid->runPowerFlow();
 			copyNodetoSuperNode();
 			checkDisconnectors();
+			checkSteadyState();
 			state = Finished;
 			break;
 		case SteadyStateCalculated:
@@ -84,7 +85,7 @@ public:
 		}
 	}
 
-	void logOS() {
+	vector<const AStarNode*> getOs() {
 		vector<const AStarNode*> os = vector<const AStarNode*>(depth + 1);
 
 		const AStarNode* current = this;
@@ -93,11 +94,30 @@ public:
 			current = current->parent;
 		}
 
+		return os;
+	}
+
+	void logOS() {
+		vector<const AStarNode*> os = getOs();
+
 		for (auto nodePtr : os) {
 			nodePtr->printWithObjective();
 		}
 
 		cout << "\n";
+	}
+
+	void checkSteadyState() {
+		for (int i = 0; i < voltages.size(); i++)
+		{
+			auto pfn = voltages[i];
+			if (!isZero(pfn.pq) && isZero(pfn.unitVoltage)) {
+				addSteadyStateObjective(Contribution("Zero voltage on node " + i, 10000));
+			}
+			else if (abs(pfn.unitVoltage) < 0.95) {
+				addSteadyStateObjective(Contribution("Low voltage ", (0.95 - abs(pfn.unitVoltage)) * 10000));
+			}
+		}
 	}
 
 	void checkDisconnectors() {
@@ -143,6 +163,17 @@ public:
 		}
 	}
 
+	AStarNode* getChild(DeltaU du) {
+		applyNode();
+
+		AStarNode* retVal = new AStarNode(grid, this, du.index, du.newU);
+
+		retVal->applyNode();
+		retVal->setHammingDistance();
+
+		return retVal;
+	}
+
 	AStarNode** getChildren() {
 		applyNode();
 
@@ -182,7 +213,7 @@ public:
 		sum += newContribution.amount;
 	}
 
-	void addSteadyStateObjective(Contribution& newContribution) {
+	void addSteadyStateObjective(Contribution newContribution) {
 		steadyStateObjective.push_back(newContribution);
 		sum += newContribution.amount;
 	}

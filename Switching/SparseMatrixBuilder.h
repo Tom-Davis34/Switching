@@ -37,56 +37,6 @@ public:
         }
     }
 
-    void subtract(int row, int col, float ele) {
-
-        //assert(row != 1 && col != 2);
-
-        map<int, float>* rowMap = &(rows[row]);
-
-        if ((*rowMap).find(col) == (*rowMap).end()) {
-            (*rowMap)[col] = ele * -1.0f;
-        }
-        else {
-            (*rowMap)[col] -= ele;
-        }
-    }
-
-    void addCircuits(const vector<Circuit>& lines, const vector<int>& nodeToSuperNode, const vector<cmplx>& voltages) {
-        for (int k = 0; k < lines.size(); k++) {
-            Circuit cir = lines[k];
-            int i = nodeToSuperNode[cir.fbus];
-            int j = nodeToSuperNode[cir.tbus];
-            float cap = cir.lineCharge;
-            cmplx imp = cmplx(1) / cir.admittance;
-            float r = imp.real();
-            float ind = imp.imag();
-            
-
-        }
-    }
-
-    void addGens(const vector<Circuit>& lines, const vector<int>& nodeToSuperNode, const vector<cmplx>& voltages) {
-        for (int k = 0; k < lines.size(); k++) {
-            Circuit cir = lines[k];
-            int i = nodeToSuperNode[cir.fbus];
-            int j = nodeToSuperNode[cir.tbus];
-            float chrg = cir.lineCharge;
-//            float ladm = cir.admittance;
-
-        }
-    }
-
-    void addLoads(const vector<Circuit>& lines, const vector<int>& nodeToSuperNode, const vector<cmplx>& voltages) {
-        for (int k = 0; k < lines.size(); k++) {
-            Circuit cir = lines[k];
-            int i = nodeToSuperNode[cir.fbus];
-            int j = nodeToSuperNode[cir.tbus];
-            float chrg = cir.lineCharge;
-//            float ladm = cir.admittance;
-
-        }
-    }
-
     SparseMatrixReal build() {
         int num = 0;
         for (int i = 0; i < rows.size(); i++)

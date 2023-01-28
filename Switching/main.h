@@ -9,7 +9,6 @@
 #include "Circuit.h"
 #include "Grid.h"
 #include "BusData.h" 
-#include "OperatingSequence.h"
 #include "AStar.h"
 #include "Runge-Kutta.h"
 

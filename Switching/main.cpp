@@ -1,6 +1,6 @@
 #include "main.h"
 
-char* edgeTypeString[3] = { "CB", "D", "C" };
+const string edgeTypeString[3] = { "CB", "D", "C" };
 
 inline ostream& operator<<(ostream& os, const Disconnector& cb)
 {
@@ -156,8 +156,7 @@ inline ostream& operator<<(ostream& os, const PowerGrid& grid)
 	return os;
 }
 
-
-int run1() {
+PowerGrid* readModel() {
 	cout << std::fixed << std::setprecision(2);
 	cout << "About to start reading model..." << endl;
 
@@ -167,9 +166,16 @@ int run1() {
 	cout << "Finished reading model:\n";
 	cout << *(grid);
 
-	grid->addTargetU(0, 0);
-	grid->addTargetU(2, -1);
-	grid->addTargetU(3, -1);
+	return grid;
+}
+
+vector<DeltaU> testDu = vector<DeltaU>{ DeltaU(0, OPEN), DeltaU(2, OPEN), DeltaU(3, OPEN) };
+int createOS(PowerGrid* grid, vector<DeltaU> du) {
+
+	grid->resetU();
+	for (auto deltaU : du) {
+		grid->addTargetU(deltaU);
+	}
 
 	auto node = aStar(grid);
 	int depth = node->depth;
@@ -182,11 +188,53 @@ int run1() {
 	return 0;
 }
 
+int createAnOutage(PowerGrid* grid, int edgeIndex) {
+
+	grid->resetU();
+	vector<DeltaU> du = grid->getOutage(edgeIndex);
+
+	grid->resetU();
+	for (auto deltaU : du) {
+		grid->addTargetU(deltaU);
+	}
+
+	auto node = aStar(grid);
+	int depth = node->depth;
+
+	for (int i = 0; i <= node->depth; i++) {
+		node->getNodeAtDepth(i)->print();
+	}
+
+	cout << endl;
+	return 0;
+}
+
+
+int evaluateOS(PowerGrid* grid, vector<DeltaU> dus) {
+
+	for (auto du : dus) {
+		grid->addTargetU(du);
+	}
+
+	auto node = evaluateOs(grid, dus);
+	int depth = node->depth;
+
+	for (int i = 0; i <= node->depth; i++) {
+		node->getNodeAtDepth(i)->print();
+	}
+
+	cout << endl;
+	return 0;
+}
+
+
+
 int runLorentz() {
 	rungeKutta4Lorentz();
 	return 1;
 }
 
 int main() {
-	return run1();
+	//createAnOutage(readModel(), 19);
+	evaluateOS(readModel(), testDu);
 }

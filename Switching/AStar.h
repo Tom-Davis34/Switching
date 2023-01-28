@@ -35,7 +35,7 @@ AStarNode* aStar (PowerGrid* grid)
 
 	frontier.emplace(root);
 
-	AStarNode* current;
+	AStarNode* current{};
 	// Continue the earch for optimal path as long as open nodes exist
 	while (!frontier.empty()) {
 		cout << "\033[1;32m ====== Iteration " + std::to_string(count) + " ====== \033[0m\n";
@@ -70,6 +70,61 @@ AStarNode* aStar (PowerGrid* grid)
 
 		count++;
 	}
+
+	return current;
+}
+
+AStarNode* evaluateOs(PowerGrid* grid, vector<DeltaU> dus)
+{
+	int count = 0;
+	int finishedNodeCount = 0;
+
+	AStarNode* root = AStarNode::createRoot(grid);
+
+	// Priority queue: discovered but unevaluated nodes starting from the start
+	// The priority is the heuristic + cost thus prioritizing the most efficient
+	// neighbour by placing it at the top of the queue
+	std::priority_queue<AStarNode*, std::vector<AStarNode*>, CompareNode> frontier;
+
+	frontier.emplace(root);
+
+	AStarNode* current{};
+	// Continue the earch for optimal path as long as open nodes exist
+	while (finishedNodeCount < dus.size() + 1) {
+		current = frontier.top();
+		if (current->getHObjective() == 0 && current->state == Finished) {
+			break;
+		}
+
+		cout << "\033[1;32m ====== Iteration " + std::to_string(count) + " ====== \033[0m\n";
+		
+		cout << "\033[1;34m";
+		current->logOS();
+		cout << "\033[0m\n";
+
+		frontier.pop();
+
+		if (current->state == Finished) {
+			cout << "Creating child...\n";
+			frontier.emplace(current->getChild(dus[finishedNodeCount]));
+			finishedNodeCount++;
+		}
+		else {
+			current->calculateNextObjective();
+			cout << "\033[1;34m";
+			current->printWithObjective();
+			cout << "\033[0m\n";
+			frontier.emplace(current);
+		}
+
+		count++;
+	}
+
+	cout << "\033[1;32m ====== End ====== \033[0m\n";
+
+		cout << "\033[1;34m";
+		current->logOS();
+		cout << "\033[0m\n";
 
 	return current;
 }

@@ -1,55 +1,11 @@
 #include "FileReader.h"
+#include <regex>
 
 //string workingDir = "C:\\Users\\Tom\\Desktop\\Grids\\BRB\\";
-string workingDir = "/home/davist/CLionProjects/Switching/Grids/BRB/";
+string workingDir = "C:\\Users\\davist\\source\\repos\\Switching-master\\Switching-master\\Grids\\BRB";
+//string workingDir = "/home/davist/CLionProjects/Switching/Grids/BRB/";
 
-//regex whiteSpace = regex("\\s+");
-std::vector<std::string> split(std::string& t, std::string delimiter)
-{
-    char* p = &t.at(0);
-    std::string result = "";
-    std::vector<std::string> out = {};
-    size_t sum;
-    for (size_t i = 0; i < t.length(); i++)
-    {
-        if  (*p != delimiter[0])
-        {
-            result.push_back(*p);
-            p++;
-            sum = 1;
-        }
-        else
-        {
-            char* d = &delimiter.at(0);
-            std::string s = "";
-            for(size_t j = 0; j < delimiter.length(); j++)
-            {
-                if(*p == *d)
-                {
-                    s.push_back(*p);
-                    d++;
-                    p++;
-                    sum = j+1;
-                    if (j > 0)
-                        ++i;
-                }
-                else
-                {
-                    result +=s;
-                    break;
-                }
-            }
-            if (sum == (delimiter.length()))
-            {
-                out.push_back(result);
-                result="";
-            }
-        }
-    }
-
-    out.push_back(result);
-    return out;
-}
+regex whiteSpace = regex("\\s+");
 
 vector<vector<string>> readGridFile(string fileDir) {
 	fstream myFile;
@@ -66,16 +22,16 @@ vector<vector<string>> readGridFile(string fileDir) {
 	while (getline(myFile, line)) {
 		cells.push_back(vector<string>());
 
-        std::vector<std::string> s = split(line, '');
+		sregex_token_iterator iter = sregex_token_iterator(line.begin(), line.end(), whiteSpace, -1);
+		sregex_token_iterator end;
 
-		for (int i = 0 ; i < s.size(); i++) {
-            cells[cells.size() - 1].push_back(s[i]);
-        }
+		for (; iter != end; ++iter) {
+			cells[cells.size() - 1].push_back(string(*iter));
+		}
 	}
 
 	return cells;
 }
-
 vector<BusData> initialiseBusData(vector<FileGen> gen, vector<FileBus> buses) {
 	assert(gen.size() == buses.size());
 

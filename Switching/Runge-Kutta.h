@@ -73,13 +73,13 @@ SparseMatrixReal buildMatrix(PowerGrid* grid, int cbId, vector<PowerFlowNode> st
 	SparseMatrixRealBuilder smbB = SparseMatrixRealBuilder(totalRows);
 
 
-
-
-}
-
-vector<float> buildX(PowerGrid* grid, int cbId) {
+	return smbA.build();
 
 }
+
+//vector<float> buildX(PowerGrid* grid, int cbId) {
+//
+//}
 
 void rungeKutta4(PowerGrid* grid, int cbId, vector<PowerFlowNode> startingVoltages) {
 	SparseMatrixReal matrix = buildMatrix(grid, cbId, startingVoltages);

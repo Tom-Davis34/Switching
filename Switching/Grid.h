@@ -18,6 +18,8 @@
 #include <unordered_set>
 #include <functional>
 
+
+
 class PowerGrid {
 public:
 	vector<CircuitBreaker> cbs;
@@ -376,6 +378,32 @@ public:
 		}
 
 		return genNum;
+	}
+
+	const vector<BusData> getGens(int superNodeId) const {
+		vector<BusData> gens = vector<BusData>();
+
+		for (auto nodeList : superNodeToNode[superNodeId])
+		{
+				if (!isZero(bds[nodeList].gen)) {
+					gens.push_back(bds[nodeList]);
+				}
+		}
+
+		return gens;
+	}
+
+	const vector<BusData> getLoads(int superNodeId) const {
+		vector<BusData> loads = vector<BusData>();
+
+		for (auto nodeList : superNodeToNode[superNodeId])
+		{
+			if (!isZero(bds[nodeList].load)) {
+				loads.push_back(bds[nodeList]);
+			}
+		}
+
+		return loads;
 	}
 
 	static PowerGrid* buildGridFromFiles() {

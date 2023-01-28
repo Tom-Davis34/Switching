@@ -41,13 +41,6 @@
     <ClCompile Include="PowerFlowRunner.cpp" />
     <ClCompile Include="print.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\Grids\BRB\Buses.txt" />
-    <Text Include="..\Grids\BRB\CircuitBreaker.txt" />
-    <Text Include="..\Grids\BRB\Circuits.txt" />
-    <Text Include="..\Grids\BRB\Disconnector.txt" />
-    <Text Include="..\Grids\BRB\Gens.txt" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6C896853-3893-4A1A-8CD2-B5B65DC627DC}</ProjectGuid>
     <RootNamespace>Switching</RootNamespace>

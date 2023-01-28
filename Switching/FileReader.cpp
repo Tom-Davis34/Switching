@@ -1,8 +1,8 @@
 #include "FileReader.h"
 #include <regex>
 
-//string workingDir = "C:\\Users\\Tom\\Desktop\\Grids\\BRB\\";
-string workingDir = "C:\\Users\\davist\\source\\repos\\Switching-master\\Switching-master\\Grids\\BRB";
+string workingDir = "C:\\Users\\Tom\\Desktop\\Grids\\BRB\\";
+//string workingDir = "C:\\Users\\davist\\source\\repos\\Switching-master\\Switching-master\\Grids\\BRB";
 //string workingDir = "/home/davist/CLionProjects/Switching/Grids/BRB/";
 
 regex whiteSpace = regex("\\s+");

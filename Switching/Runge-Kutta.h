@@ -8,7 +8,9 @@
 #define LG 0.001
 #define CG 0.0001
 
-#define CG 0.001;
+#define CL 0.001
+#define CL 0.001
+#define CL 0.001
 
 float rho = 28;
 float sigma = 10;
@@ -89,11 +91,11 @@ SparseMatrixReal buildMatrix(PowerGrid* grid, int cbId, vector<PowerFlowNode> st
 		int indexOfI = i + indexOfCurrentFromGnd;
 		int indexOfV = i;
 
-		smbA
+		//smbA
 	}
 	
 
-
+	return smbA.build();
 
 }
 

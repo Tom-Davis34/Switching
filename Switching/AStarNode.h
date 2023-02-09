@@ -4,6 +4,7 @@
 #include "Control.h"
 #include "DeltaU.h"
 #include "Grid.h"
+#include "Runge-Kutta.h"
 
 enum NodeState
 {
@@ -70,9 +71,14 @@ public:
 			copyNodetoSuperNode();
 			checkDisconnectors();
 			checkSteadyState();
-			state = Finished;
+			state = SteadyStateCalculated;
 			break;
 		case SteadyStateCalculated:
+			if (deltaU.index < grid->cbs.size() && deltaU.index >= 0) {
+				rungeKutta4(grid, deltaU.index, voltages, nodeToSuperNode, parent->nodeToSuperNode);
+			}
+			state = TransientCalculated;
+		case TransientCalculated:
 			state = Finished;
 		default:
 			break;

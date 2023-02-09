@@ -74,14 +74,22 @@ public:
 	}
 
 	void resetTargetU() {
-		for (int i = 0; i < cbs.size() + ds.size(); i++) {
-			targetU[i] = CLOSED;
+		for (int i = 0; i < cbs.size(); i++) {
+			targetU[i] = cbs[i].isOpen ? OPEN : CLOSED;
+		}
+
+		for (int i = cbs.size(); i < cbs.size() + ds.size(); i++) {
+			targetU[i] = ds[i].isOpen ? OPEN : CLOSED;
 		}
 	}
 
 	void resetU() {
-		for (int i = 0; i < cbs.size() + ds.size(); i++) {
-			u[i] = CLOSED;
+		for (int i = 0; i < cbs.size(); i++) {
+			u[i] = cbs[i].isOpen ? OPEN : CLOSED;
+		}
+
+		for (int i = cbs.size(); i < cbs.size() + ds.size(); i++) {
+			u[i] = ds[i].isOpen ? OPEN : CLOSED;
 		}
 	}
 
@@ -98,13 +106,13 @@ public:
 	void initEdges() {
 		for (int i = 0; i < cbs.size(); i++) {
 				edges.push_back(&(cbs[i]));
-				u.push_back(cbs[i].isOpen?1:-1);
+				u.push_back(cbs[i].isOpen?OPEN:CLOSED);
 				targetU.push_back(1);
 		}
 
 		for (int i = 0; i < ds.size(); i++) {
 				edges.push_back(&(ds[i]));
-				u.push_back(ds[i].isOpen ? 1 : -1);
+				u.push_back(ds[i].isOpen ? OPEN : CLOSED);
 				targetU.push_back(1);
 		}
 
@@ -216,7 +224,7 @@ vector<int> plagueAlgo(int const& startNode, unordered_set<int>& alreadyInfected
 
 		vector<Edge*> edgesForCurrentNode = nodesToEdges[currentNode];
 		for (int i = 0; i < edgesForCurrentNode.size(); i++) {
-			if (isSwitch(edgesForCurrentNode[i])) {
+			if (isClosedSwitch(edgesForCurrentNode[i])) {
 				assert(
 					edgesForCurrentNode[i]->getFNode() == currentNode ||
 					edgesForCurrentNode[i]->getTNode() == currentNode
@@ -504,6 +512,33 @@ vector<DeltaU> getOutage(int const& outageEdge) {
 		PowerGrid* grid = new PowerGrid(readCircuitBreakers(), readDisconnectors(), readCircuits(), readBusData());
 
 		return grid;
+	}
+
+	const vector<BusData> getGens(int superNodeId) const {
+		vector<BusData> gens = vector<BusData>();
+
+		for (auto nodeList : superNodeToNode[superNodeId])
+		{
+			if (!isZero(bds[nodeList].gen)) {
+				gens.push_back(bds[nodeList]);
+			}
+		}
+
+		return gens;
+	}
+
+	const cmplx getTotalAdmittance(int superNodeId, vector<PowerFlowNode> startingVoltages, vector<int> nodeToSuperNode) const {
+		cmplx admittance = 0;
+
+		for (auto nodeId : superNodeToNode[superNodeId])
+		{
+			auto v = abs(startingVoltages[nodeToSuperNode[nodeId]].unitVoltage);
+			if (v > 0 && bds[nodeId].type == 1) {
+				admittance += bds[nodeId].load / abs(v * v);
+			}
+		}
+
+		return admittance;
 	}
 
 	friend ostream& operator<<(ostream& os, const PowerGrid& grid);

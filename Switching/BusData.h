@@ -31,8 +31,8 @@ public:
 		res.type = type;
 		res.node = node;
 
-		res.load = cmplx(load)/voltage;
-		res.gen = cmplx(gen)/voltage;
+		res.load = load/voltage;
+		res.gen = gen/voltage;
 		res.voltage = float(voltage);
 		res.cost = float(cost);
 

@@ -11,9 +11,6 @@
 #include "Disconnector.h"
 #include <cassert>
 
-
-
-
 class SparseMatrixRealBuilder {
 public:
     vector<map<int, float>> rows;
@@ -24,6 +21,7 @@ public:
             rows.push_back(map<int, float>());
         }
     };
+
 
     void plus(int row, int col, float ele) {
         map<int, float> rowMap = rows[row];
@@ -37,6 +35,18 @@ public:
         }
     }
 
+    void set(int row, int col, float ele) {
+        map<int, float> rowMap = rows[row];
+
+        float matrixElement = rows[row][col];
+        if (rows[row].find(col) == rows[row].end()) {
+            rows[row][col] = ele;
+        }
+        else {
+            rows[row][col] = ele;
+        }
+    }
+
     SparseMatrixReal build() {
         int num = 0;
         for (int i = 0; i < rows.size(); i++)
@@ -46,13 +56,13 @@ public:
 
         int cursor = 0;
 
-        int* rowVector = new int[rows.size() + 1];
-        int* colVector = new int[num];
-        float* eleVector = new float[num];
+        vector<int>* rowVector = new vector<int>(rows.size() + 1);
+        vector<int>* colVector = new vector<int>(num);
+        vector<float>* eleVector = new vector<float>(num);
 
         for (int i = 0; i < rows.size(); i++)
         {
-            rowVector[i] = cursor;
+            (*rowVector)[i] = cursor;
             map<int, float> row = rows[i];
 
             //for (map<int, float>::const_iterator iter = row.begin(); iter != row.end(); iter++)
@@ -66,16 +76,16 @@ public:
 
             for (map<int, float>::const_iterator iter = row.begin(); iter != row.end(); iter++)
             {
-                colVector[cursor] = (iter->first);
-                eleVector[cursor] = (iter->second);
+                (*colVector)[cursor] = (iter->first);
+                (*eleVector)[cursor] = (iter->second);
                 fprintf(stderr, "[%d, %d]: %f\n", i, colVector[cursor], eleVector[cursor]);
                 cursor++;
             }
         }
 
-        rowVector[rows.size()] = cursor;
+        (*rowVector)[rows.size()] = cursor;
 
-        return SparseMatrixReal(&rowVector[0], &colVector[0], &eleVector[0], cursor);
+        return SparseMatrixReal(rows.size(), (*rowVector), (*colVector), (*eleVector), cursor);
     }
 };
 

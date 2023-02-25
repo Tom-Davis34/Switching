@@ -170,6 +170,8 @@ PowerGrid* readModel() {
 }
 
 vector<DeltaU> testDu = vector<DeltaU>{ DeltaU(0, OPEN), DeltaU(2, OPEN), DeltaU(3, OPEN) };
+vector<DeltaU> testTransients1 = vector<DeltaU>{ DeltaU(6, OPEN) };
+vector<DeltaU> testTransients2 = vector<DeltaU>{ DeltaU(6, OPEN), DeltaU(6, CLOSED), DeltaU(1, OPEN) };
 vector<DeltaU> testDuSimpleTransient = vector<DeltaU>{ DeltaU(0, CLOSED) };
 int createOS(PowerGrid* grid, vector<DeltaU> du) {
 
@@ -229,13 +231,7 @@ int evaluateOS(PowerGrid* grid, vector<DeltaU> dus) {
 }
 
 
-
-int runLorentz() {
-	rungeKutta4Lorentz();
-	return 1;
-}
-
 int main() {
 	//createAnOutage(readModel(), 19);
-	evaluateOS(readModel(), testDuSimpleTransient);
+	evaluateOS(readModel(), testTransients1);
 }

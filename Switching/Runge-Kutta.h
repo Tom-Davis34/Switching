@@ -4,11 +4,15 @@
 #include "common.h"
 #include "SparseMatrix.h"
 
-#define RG 0.001
-#define LG 0.01
-#define CG 0.0001
+//Z_base = 10000
+#define RG 1
+#define RGC 100
+#define LG 0.00525
+#define CG 0.000525
 
-#define CL 0.001
+#define SWR 0.001
+
+#define CL 0.0000000001
 #define WRITE_OUTPUT true
 #define PI 3.14159265359
 
@@ -73,20 +77,19 @@ vector<float> createZeroVector(int size) {
 	return vec;
 }
 
-SparseMatrixReal buildA(PowerGrid* grid, int cbId, vector<PowerFlowNode> startingVoltages, vector<int> oldNodeToSuperNode,
-	vector<int> newNodeToSuperNode) {
-	grid->createSubGraph();
+SparseMatrixRealBuilder builderA(PowerGrid* grid, int cbId, vector<PowerFlowNode> startingVoltages, vector<int> oldNodeToSuperNode,
+	vector<int> newNodeToSuperNode, vector<float> capToGnd ) {
 
-	int voltageNum = grid->superNodeToNode.size();
-	int currentFromGndNum = voltageNum - 1;
+	int voltageNum = grid->superNodeToNode.size() - 1;
+	int currentFromGndNum = voltageNum*2;
 	int cirCurrentNum = grid->cs.size();
 	int totalRows = voltageNum + currentFromGndNum + cirCurrentNum;
 	int genNum = grid->getGenNum();
 
-	int indexOfCurrentFromGnd = voltageNum ;
-	int indexOfCirCurrentNum = voltageNum + currentFromGndNum;
+	int indexOfGenCurrent = voltageNum;
+	int indexOfLoadCurrent = voltageNum*2;
+	int indexOfCirCurrentNum = voltageNum*3;
 
-	vector<float> capToGnd = vector<float>(totalRows);
 	vector<bool> containsEdge = vector<bool>(totalRows);
 
 	//totalRows x totalRows
@@ -94,7 +97,7 @@ SparseMatrixReal buildA(PowerGrid* grid, int cbId, vector<PowerFlowNode> startin
 
 	for (size_t i = 0; i < voltageNum; i++)
 	{
-		vector<BusData> gens = grid->getGens(i);
+		vector<BusData> gens = grid->getGens(i + 1);
 
 		if (gens.size() == 0){
 			continue;
@@ -102,24 +105,25 @@ SparseMatrixReal buildA(PowerGrid* grid, int cbId, vector<PowerFlowNode> startin
 
 		float Lg = LG / gens.size();
 		float Rg = RG / gens.size();
+		float Rcg = RG / gens.size();
 		float Cg = gens.size() * CG;
 
-		int indexOfI = i + indexOfCurrentFromGnd - 1;
+		int indexOfI = i + indexOfGenCurrent;
 		int indexOfV = i;
 
+		smbA.plus(indexOfI, indexOfI, -1 / Lg);
+		smbA.plus(indexOfI, indexOfV, -Rg / Lg);
 
-		smbA.plus(indexOfI, indexOfI, -Rg / Lg);
-		smbA.plus(indexOfI, indexOfV, -1 / Lg);
-		//smbA.plus(indexOfV, indexOfV, -1 / (Lg * Cg));
+		smbA.plus(indexOfV, indexOfV, -1.0 / (float)RGC);
+
 		capToGnd[indexOfV] += Cg;
 
 		smbA.set(indexOfV, indexOfI, 1);
 	}
 
-
 	for (size_t i = 0; i < voltageNum; i++)
 	{
-		cmplx totaladmittance = grid->getTotalAdmittance(i, startingVoltages, oldNodeToSuperNode);
+		cmplx totaladmittance = grid->getTotalAdmittance(i + 1, startingVoltages, oldNodeToSuperNode);
 
 		if (isZero(totaladmittance)) {
 			continue;
@@ -130,11 +134,10 @@ SparseMatrixReal buildA(PowerGrid* grid, int cbId, vector<PowerFlowNode> startin
 		float Ll = abs(totalInductance.imag());
 		float Rl = abs(totalInductance.real());
 
-		int indexOfI = i + indexOfCurrentFromGnd - 1;
+		int indexOfI = i + indexOfLoadCurrent;
 		int indexOfV = i;
 
 		smbA.plus(indexOfI, indexOfI, -Rl / Ll);
-		//smbA.plus(indexOfI, indexOfI, -Rl / Ll);
 		smbA.plus(indexOfI, indexOfV, -1 / Ll);
 
 		smbA.set(indexOfV, indexOfI, 1);
@@ -159,39 +162,78 @@ SparseMatrixReal buildA(PowerGrid* grid, int cbId, vector<PowerFlowNode> startin
 		smbA.plus(indexOfI, j, 1/ind);
 
 		////cap
-		//smbA.set(i, k, );
-		//smbA.set(j, k, 0.5f * chrg);
+		capToGnd[i] += chrg / 2;
+		capToGnd[j] += chrg / 2;
 	}
 
-	return smbA.build();
+	for (size_t i = 0; i < voltageNum; i++) {
+		for (size_t j = 0; j < totalRows; j++) {
+			smbA.divide(i, j, capToGnd[i]);
+		}
+	}
+
+	return smbA;
+}
+
+SparseMatrixRealBuilder addATilder(SparseMatrixRealBuilder smbA, PowerGrid* grid, int node1, int node2, vector<float> capToGnd, vector<int> newNodeToSuperNode) {
+	
+	
+	int voltageNum = grid->superNodeToNode.size() - 1;
+	int currentFromGndNum = voltageNum * 2;
+	int cirCurrentNum = grid->cs.size();
+	int totalRows = voltageNum + currentFromGndNum + cirCurrentNum;
+	int genNum = grid->getGenNum();
+
+	int indexOfGenCurrent = voltageNum;
+	int indexOfLoadCurrent = voltageNum * 2;
+	int indexOfCirCurrentNum = voltageNum * 3;
+
+
+	int i = newNodeToSuperNode[node1] - 1;
+	int j = newNodeToSuperNode[node2] - 1;
+
+	int indexOfIi = i + indexOfGenCurrent;
+	int indexOfVi = i;
+	int indexOfIj = j + indexOfGenCurrent;
+	int indexOfVj = j;
+
+	smbA.plus(indexOfVi, indexOfVi, -1 / SWR / capToGnd[indexOfVi]);
+	smbA.plus(indexOfVi, indexOfVj,  1 / SWR / capToGnd[indexOfVi]);
+	smbA.plus(indexOfVj, indexOfVj, -1 / SWR / capToGnd[indexOfVj]);
+	smbA.plus(indexOfVj, indexOfVi,  1 / SWR / capToGnd[indexOfVj]);
+
+
+	return smbA;
 }
 
 SparseMatrixReal buildB(PowerGrid* grid, int cbId, vector<PowerFlowNode> startingVoltages, vector<int> oldNodeToSuperNode,
 	vector<int> newNodeToSuperNode) {
 	grid->createSubGraph();
 
-	int voltageNum = grid->superNodeToNode.size();
-	int currentFromGndNum = voltageNum - 1;
+	int voltageNum = grid->superNodeToNode.size() - 1;
+	int currentFromGndNum = voltageNum * 2;
 	int cirCurrentNum = grid->cs.size();
 	int totalRows = voltageNum + currentFromGndNum + cirCurrentNum;
 	int genNum = grid->getGenNum();
 
-	int indexOfCurrentFromGnd = voltageNum;
-	int indexOfCirCurrentNum = voltageNum + currentFromGndNum;
+	int indexOfGenCurrent = voltageNum;
+	int indexOfLoadCurrent = voltageNum * 2;
+	int indexOfCirCurrentNum = voltageNum * 3;
 
 	//totalRows x totalRows
 	SparseMatrixRealBuilder smbB = SparseMatrixRealBuilder(totalRows);
 
-	for (size_t i = 1; i < voltageNum; i++)
+	for (size_t i = voltageNum; i < voltageNum*2; i++)
 	{
-		vector<BusData> gens = grid->getGens(i);
+		vector<BusData> gens = grid->getGens(i - voltageNum + 1);
+
+		if (gens.size() == 0) {
+			continue;
+		}
 
 		float Lg = LG / gens.size();
-		float Rg = RG / gens.size();
-		float Cg = gens.size() * CG;
 
-		int indexOfI = i + indexOfCurrentFromGnd - 1;
-		int indexOfV = i - 1;
+		int indexOfI = i;
 
 		smbB.plus(indexOfI, indexOfI, 1 / Lg);
 	}
@@ -226,21 +268,32 @@ void writeVec(vector<float> vec, ofstream* myfile) {
 }
 
 void rungeKutta4(PowerGrid* grid, int cbId, vector<PowerFlowNode> startingVoltages, vector<int> oldNodeToSuperNode, vector<int> newNodeToSuperNode) {
-	float dt = 0.0001;
+	float dt = 0.00001;
 	float t = 0;
-	float endTime = 5;
+	float endTime = 0.2;
 
-	int voltageNum = grid->superNodeToNode.size();
-	int currentFromGndNum = voltageNum - 1;
+	grid->createSubGraph();
+
+	int voltageNum = grid->superNodeToNode.size() - 1;
+	int currentFromGndNum = voltageNum * 2;
 	int cirCurrentNum = grid->cs.size();
 	int totalRows = voltageNum + currentFromGndNum + cirCurrentNum;
-	int genNum = grid->getGenNum();
+	vector<float> capToGnd = vector<float>(totalRows);
 
-	int indexOfCurrentFromGnd = voltageNum;
-	int indexOfCirCurrentNum = voltageNum + currentFromGndNum;
-
-	SparseMatrixReal A = buildA(grid, cbId, startingVoltages, oldNodeToSuperNode, newNodeToSuperNode);
+	SparseMatrixRealBuilder bA = builderA(grid, cbId, startingVoltages, oldNodeToSuperNode, newNodeToSuperNode, capToGnd);
+	SparseMatrixReal A1 = bA.build();
+	addATilder(bA, grid, grid->cbs[cbId].getFNode(), grid->cbs[cbId].getTNode(), capToGnd, newNodeToSuperNode);
+	SparseMatrixReal A2 = bA.build();
 	SparseMatrixReal B = buildB(grid, cbId, startingVoltages, oldNodeToSuperNode, newNodeToSuperNode);
+
+
+
+	cout << "A1\n";
+	A1.logSquareFull();
+	cout << "A2\n";
+	A2.logSquareFull();
+	cout << "B\n";
+	B.logSquareFull();
 
 	vector<float> vec = createZeroVector(totalRows);
 	vector<float> sint = createZeroVector(totalRows);
@@ -255,15 +308,22 @@ void rungeKutta4(PowerGrid* grid, int cbId, vector<PowerFlowNode> startingVoltag
 			writeVec(vec, &myfile);
 		}
 
+		//cout << t << ", " << sinf((2 * PI) * t * 50) << "   [" << vec[0] <<", " << vec[1] << ", " << vec[2] << "]" << "\n";
+
 		int i = 0;
-		while (i < indexOfCirCurrentNum) {
+		while (i < currentFromGndNum + voltageNum) {
 			sint[i] = sinf((2 * PI)*t*50);
 			i++;
 		}
 
-		//cout << sint[0] << "\n";
+		if (t <0) {
+			vec = step(A1, B, vec, sint, dt);
+		}
+		else {
+			vec = step(A2, B, vec, sint, dt);
+		}
 
-		vec = step(A, B, vec, sint, dt);
+	
 		t += dt;
 	}
 }

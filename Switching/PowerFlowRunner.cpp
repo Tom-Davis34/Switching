@@ -2,8 +2,6 @@
 
 #include "PowerFlowRunner.h"
 
-
-
 cmplx updateVoltage(int tid, PowerFlowNode* powerFlowNode, SparseMatrixComplex admMat, cmplx* voltage, int slackBus, cmplx pq) {
 	cmplx result = 0;
 	cmplx diagonal = 0.0;

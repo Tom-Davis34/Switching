@@ -88,8 +88,8 @@ public:
 			u[i] = cbs[i].isOpen ? OPEN : CLOSED;
 		}
 
-		for (int i = cbs.size(); i < cbs.size() + ds.size(); i++) {
-			u[i] = ds[i].isOpen ? OPEN : CLOSED;
+		for (int i = 0; i < ds.size(); i++) {
+			u[cbs.size() + i] = ds[i].isOpen ? OPEN : CLOSED;
 		}
 	}
 
@@ -436,7 +436,8 @@ vector<DeltaU> getOutage(int const& outageEdge) {
 			for (size_t j = 0; j < superNodeToNode[i].size(); j++)
 			{
 				pfNode.pq += bds[superNodeToNode[i][j]].pq;
-				pfNode.systemVoltage = std::max(bds[superNodeToNode[i][j]].voltage, pfNode.systemVoltage);
+
+				pfNode.systemVoltage = max(bds[superNodeToNode[i][j]].voltage, pfNode.systemVoltage);
 				if (bds[superNodeToNode[i][j]].isPV) {
 					pfNode.isPV = true;
 				}
@@ -465,6 +466,8 @@ vector<DeltaU> getOutage(int const& outageEdge) {
 		SparseMatrixComplexBuilder smb = SparseMatrixComplexBuilder(superNodeToNode.size());
 		smb.addCircuits(cs, nodeToSuperNode);
 
+		SparseMatrixComplex sm = smb.build();
+
 		int slackBus = 0;
 		for (size_t i = 0; i < bds.size(); i++)
 		{
@@ -475,7 +478,7 @@ vector<DeltaU> getOutage(int const& outageEdge) {
 
 		cout << "\nSlackBus is: " << slackBus << "\n";
 
-		powerFlowRunner(&pfNodes[0], smb.build(), &superVoltage[0], pfNodes.size(), slackBus);
+		powerFlowRunner(&pfNodes[0], sm, &superVoltage[0], pfNodes.size(), slackBus);
 
 		cout << "\nVoltages are:\n";
 		for (size_t i = 0; i < voltage.size(); i++)
@@ -516,6 +519,7 @@ vector<DeltaU> getOutage(int const& outageEdge) {
 
 	const vector<BusData> getGens(int superNodeId) const {
 		vector<BusData> gens = vector<BusData>();
+
 
 		for (auto nodeList : superNodeToNode[superNodeId])
 		{

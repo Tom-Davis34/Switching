@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 #include "common.h"
+#include <iostream>
+
 
 class SparseMatrixComplex {
 public:
@@ -58,6 +60,39 @@ public:
         }
 
         return newVec;
+    }
+
+    float get(int rowId, int colId) {
+        int eleIndex = row[rowId];
+        int lastEleIndex = row[rowId + 1];
+
+        while (eleIndex < lastEleIndex) {
+            int colIndex = col[eleIndex];
+            if (colIndex == colId) {
+                return ele[eleIndex];
+            }
+
+            eleIndex++;
+        }
+
+        return 0.0f;
+    }
+
+
+    void logSquareFull() {
+
+        for (size_t i = 0; i < rowCount; i++)
+        {
+            for (size_t j = 0; j < rowCount; j++)
+            {
+                //char buff[100];
+                //snprintf(buff, sizeof(buff), "%s", "Hello");
+
+                std::printf("%3.3f, ", get(i,j));
+            }
+
+            std::cout << "\n";
+        }
     }
 };
     

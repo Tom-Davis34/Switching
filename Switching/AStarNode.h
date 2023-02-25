@@ -5,6 +5,7 @@
 #include "DeltaU.h"
 #include "Grid.h"
 #include "Runge-Kutta.h"
+#include <unordered_map>
 
 enum NodeState
 {
@@ -72,12 +73,14 @@ public:
 			checkDisconnectors();
 			checkSteadyState();
 			state = SteadyStateCalculated;
+			setSum();
 			break;
 		case SteadyStateCalculated:
 			if (deltaU.index < grid->cbs.size() && deltaU.index >= 0) {
 				rungeKutta4(grid, deltaU.index, voltages, nodeToSuperNode, parent->nodeToSuperNode);
 			}
 			state = TransientCalculated;
+			setSum();
 		case TransientCalculated:
 			state = Finished;
 		default:
@@ -346,8 +349,39 @@ public:
 	void setSum() {
 		sum = STEP_OBJECTIVE * depth;
 		sum += getHObjective();
-		sum += getOtherObjective();
-		sum += getSteadyStateObjective();
-		sum += getTransientObjective();
+
+		unordered_map<string, float> maxContri = unordered_map<string, float>();
+
+		vector<const AStarNode*> os = getOs();
+
+		for (auto ss : os) {
+			for (auto oo : ss->otherObjective) {
+				if (maxContri.find(oo.reason) != maxContri.end()) {
+					float currentMax = maxContri.find(oo.reason)->second;
+					maxContri[oo.reason] = max(oo.amount, currentMax);
+				}
+				else {
+					maxContri[oo.reason] = oo.amount;
+				}
+			}
+			for (auto oo : ss->steadyStateObjective) {
+				if (maxContri.find(oo.reason) != maxContri.end()) {
+					float currentMax = maxContri.find(oo.reason)->second;
+					maxContri[oo.reason] = max(oo.amount, currentMax);
+				}
+				else {
+					maxContri[oo.reason] = oo.amount;
+				}
+			}
+			for (auto oo : ss->transientObjective) {
+				if (maxContri.find(oo.reason) != maxContri.end()) {
+					float currentMax = maxContri.find(oo.reason)->second;
+					maxContri[oo.reason] = max(oo.amount, currentMax);
+				}
+				else {
+					maxContri[oo.reason] = oo.amount;
+				}
+			}
+		}
 	}
 };

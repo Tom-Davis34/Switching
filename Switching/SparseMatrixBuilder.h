@@ -35,6 +35,20 @@ public:
         }
     }
 
+    void divide(int row, int col, float ele) {
+        map<int, float> rowMap = rows[row];
+
+        float matrixElement = rows[row][col];
+        if (rows[row].find(col) == rows[row].end()) {
+            rows[row][col] = 1/ele;
+        }
+        else {
+            if (ele != 0.0 ) {
+                rows[row][col] = rows[row][col] / ele;
+            }
+        }
+    }
+
     void set(int row, int col, float ele) {
         map<int, float> rowMap = rows[row];
 

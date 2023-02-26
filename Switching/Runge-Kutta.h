@@ -272,10 +272,10 @@ void rungeKutta4(PowerGrid* grid, int cbId, vector<PowerFlowNode> startingVoltag
 	float t = 0;
 	float endTime = 0.2;
 
-	grid->createSubGraph();
+	grid->createSubGraph(cbId);
 
 	int voltageNum = grid->superNodeToNode.size() - 1;
-	int currentFromGndNum = voltageNum * 2;
+	int currentFromGndNum = voltageNum;
 	int cirCurrentNum = grid->cs.size();
 	int totalRows = voltageNum + currentFromGndNum + cirCurrentNum;
 	vector<float> capToGnd = vector<float>(totalRows);
